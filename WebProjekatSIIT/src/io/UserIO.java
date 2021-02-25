@@ -1,61 +1,90 @@
 package io;
+import java.io.BufferedReader;
+
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.ArrayList;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 
-import au.com.bytecode.opencsv.CSVReader;
-import au.com.bytecode.opencsv.CSVWriter;
-import main.CloudServiceProvider;
+import java.util.Date;
+
+
+import main.main;
+import model.BuyerType;
+import model.BuyerTypeName;
 import model.Role;
 import model.User;
 
 public class UserIO {
 	
-private static ArrayList<String[]> data;
+	public static SimpleDateFormat sdf = new SimpleDateFormat("dd.MM.yyyy.");
 	
-	public static void setData(ArrayList<User> list)
-	{
-		data = new ArrayList<String[]>();
-		data.add(new String[]{"email","name","lastName","password","organization","role"});
-		for (User obj: list)
-		{
-			if(obj.getOrganization().getName().equals("none")) {
-				data.add(new String[]{obj.getEmail(), obj.getName(), obj.getLastName(), obj.getPassword(), "", ""+obj.getRole()});
-			}
-			else {
-				data.add(new String[]{obj.getEmail(), obj.getName(), obj.getLastName(), obj.getPassword(), obj.getOrganization().getName(), ""+obj.getRole()});
-			}
-			
-		}
-	}
-	public static void fromFile() throws NumberFormatException, IOException {
+	public static void fromFile() throws IOException, ParseException {
 		String csvFileName = "././data/users.csv";
-		CSVReader reader = new CSVReader(new FileReader(csvFileName),',','"',1);
-		String[] row = null;
 		
-		while((row = reader.readNext()) != null) {
-			String email = row[0];
-			String name = row[1];
-			String lastname = row[2];
-			String password = row[3];
-			Role role = Role.valueOf(row[5]);
-
-			User u = new User(email, name, lastname, password, new Organization("none"), role);
-			CloudServiceProvider.users.add(u);
-			
-		}
-		reader.close();
+		String line = "";  
+		String splitBy = ",";
+		
+		 
+		BufferedReader br = new BufferedReader(new FileReader(csvFileName));  
+		while ((line = br.readLine()) != null)   
+		{  
+	
+		String[] user = line.split(splitBy);
+		String [] buyerType = user[5].split(":");
+		String pass = user[0];
+		String name = user[1];
+		String lastName = user[2];
+		Date date = sdf.parse(user[3]);
+		Role role = Role.valueOf(user[4]);
+		BuyerTypeName buyerTypeName = BuyerTypeName.valueOf(buyerType[0]);
+		double buyerTypeDiscount = Double.parseDouble(buyerType[1]);
+		int buyerTypePoints = Integer.parseInt(buyerType[2]);
+		String username = user[6];
+		User u = new User(pass,name,lastName,date,role, new BuyerType(buyerTypeName,buyerTypeDiscount,buyerTypePoints),username);
+		main.users.add(u);
+		
+		}  
+		
+		br.close();
 		
 	}
 	
-	public static void toFile(ArrayList<User> list) throws IOException {	
-		String csvNewFile = "././data/users.csv";
-		CSVWriter writer = new CSVWriter(new FileWriter(csvNewFile));
-		setData(list);
-		writer.writeAll(data);
-		writer.close();
+	
+	public static void toFile() throws IOException {
+		
+		FileWriter csvWriter = new FileWriter("././data/users.csv");
+		
+		for (User u : main.users) {
+			csvWriter.append(u.getPassword());
+			csvWriter.append(",");
+			csvWriter.append(u.getName());
+			csvWriter.append(",");
+			csvWriter.append(u.getLastname());
+			csvWriter.append(",");
+			csvWriter.append(sdf.format(u.getDate()));
+			csvWriter.append(",");
+			csvWriter.append(u.getRole().toString());
+			csvWriter.append(",");
+			csvWriter.append(u.getBuyerType().getBuyerTypeName().toString());
+			csvWriter.append(":");
+			csvWriter.append(Double.toString(u.getBuyerType().getDiscount()));
+			csvWriter.append(":");
+			csvWriter.append(Integer.toString(u.getBuyerType().getRequiredPoints()));
+			csvWriter.append(",");
+			csvWriter.append(u.getUsername());
+			csvWriter.append("\n");
+			
+		}
+		
+		csvWriter.flush();
+		csvWriter.close();
+		
+		
 		
 	}
+	
+
 
 }

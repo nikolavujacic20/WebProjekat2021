@@ -1,21 +1,24 @@
 package main;
+import model.User;
+
+import io.UserIO;
 
 
-
-import java.io.File;
 import java.io.IOException;
-import java.text.DecimalFormat;
+
 import java.text.ParseException;
 import java.util.ArrayList;
-import java.util.Date;
-import java.util.concurrent.TimeUnit;
+
 
 public class main {
+	
+	public static ArrayList<User> users = new ArrayList<User>();
 
-	public static void main(String[] args) {
-		System.out.println("RADI");
-		
-		
+	public static void main(String[] args) throws NumberFormatException, IOException, ParseException {
+	
+		UserIO.fromFile();
+		System.out.println("ZAVRSENO UPISIVANJE");
+		UserIO.toFile();
 
 	}
 
